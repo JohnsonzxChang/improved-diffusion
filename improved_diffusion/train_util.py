@@ -188,6 +188,7 @@ class TrainLoop:
     def forward_backward(self, batch, cond):
         zero_grad(self.model_params)
         for i in range(0, batch.shape[0], self.microbatch):
+            print(f'doing {i} in {batch.shape[0]} ......')
             micro = batch[i : i + self.microbatch].to(dist_util.dev())
             micro_cond = {
                 k: v[i : i + self.microbatch].to(dist_util.dev())
@@ -279,6 +280,7 @@ class TrainLoop:
                     filename = f"ema_{rate}_{(self.step+self.resume_step):06d}.pt"
                 with bf.BlobFile(bf.join(get_blob_logdir(), filename), "wb") as f:
                     th.save(state_dict, f)
+                    print(bf.join(get_blob_logdir(), filename))
 
         save_checkpoint(0, self.master_params)
         for rate, params in zip(self.ema_rate, self.ema_params):
@@ -328,7 +330,7 @@ def parse_resume_step_from_filename(filename):
 
 
 def get_blob_logdir():
-    return os.environ.get("DIFFUSION_BLOB_LOGDIR", logger.get_dir())
+    return os.environ.get("OPENAI_LOGDIR", logger.get_dir())
 
 
 def find_resume_checkpoint():
